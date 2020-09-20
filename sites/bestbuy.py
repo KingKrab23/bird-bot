@@ -73,7 +73,7 @@ class BestBuy:
                 if r.status_code == 200:
                     doc = lxml.html.fromstring(r.text)
                     if not image_found:
-                        self.sku_id = doc.xpath('//span[@class="product-data-value body-copy"]/text()')[1].strip()
+                        self.sku_id = doc.xpath('//div[@class="sku product-data"]//span[@class="product-data-value body-copy"]/text()')[0].strip()
                         product_image = doc.xpath('//img[@class="primary-image"]/@src')[0]
                         self.image_signal.emit(product_image)
                         image_found = True
@@ -100,7 +100,7 @@ class BestBuy:
             try:
                 url = "https://www.bestbuy.com/api/tcfb/model.json?paths=%5B%5B%22shop%22%2C%22scds%22%2C%22v2%22%2C%22page%22%2C%22tenants%22%2C%22bbypres%22%2C%22pages%22%2C%22globalnavigationv5sv%22%2C%22header%22%5D%2C%5B%22shop%22%2C%22buttonstate%22%2C%22v5%22%2C%22item%22%2C%22skus%22%2C{}%2C%22conditions%22%2C%22NONE%22%2C%22destinationZipCode%22%2C%22%2520%22%2C%22storeId%22%2C%22%2520%22%2C%22context%22%2C%22cyp%22%2C%22addAll%22%2C%22false%22%5D%5D&method=get".format(self.sku_id)
                 r = self.session.get(url,headers=headers)
-                return "ADD_TO_CART" in r.text 
+                return "add to cart" in r.text.lower()
             except Exception as e:
                 self.status_signal.emit({"msg":"Error Checking Stock (line {} {} {})".format(sys.exc_info()[-1].tb_lineno, type(e).__name__, e),"status":"error"})
                 time.sleep(self.error_delay)
@@ -113,8 +113,7 @@ class BestBuy:
             "content-length": "31",
             "content-type": "application/json; charset=UTF-8",
             "origin": "https://www.bestbuy.com",
-            "referer": self.product,
-            "user-agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/81.0.4044.92 Safari/537.36"
+            "referer": self.product
         }
         body = {"items":[{"skuId":self.sku_id}]}
         while True:
@@ -136,8 +135,7 @@ class BestBuy:
             "accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9",
             "accept-encoding": "gzip, deflate, br",
             "accept-language": "en-US,en;q=0.9,zh-CN;q=0.8,zh;q=0.7",
-            "upgrade-insecure-requests": "1",
-            "user-agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/81.0.4044.92 Safari/537.36",
+            "upgrade-insecure-requests": "1"
         }
         while True:
             self.status_signal.emit({"msg":"Starting Checkout","status":"normal"})
@@ -163,7 +161,6 @@ class BestBuy:
             "content-type": "application/json",
             "origin": "https://www.bestbuy.com",
             "referer": "https://www.bestbuy.com/checkout/r/fulfillment",
-            "user-agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/81.0.4044.92 Safari/537.36",
             "x-user-interface": "DotCom-Optimized"
         }
         profile = self.profile
@@ -207,7 +204,6 @@ class BestBuy:
             "content-type": "application/json",
             "origin": "https://www.bestbuy.com",
             "referer": "https://www.bestbuy.com/checkout/r/fulfillment",
-            "user-agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/81.0.4044.92 Safari/537.36",
             "x-user-interface": "DotCom-Optimized"
         }
         profile = self.profile
